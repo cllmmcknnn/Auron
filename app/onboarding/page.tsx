@@ -3,26 +3,10 @@ import { useState, useEffect, ReactNode, ChangeEvent, FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import type { OnboardingProfile } from '@/lib/types'
 
 // ─── TYPES ──────────────────────────────────────────────────────
-interface Profile {
-  name: string
-  college: string
-  cgpa: string
-  branch: string
-  semester: string
-  passoutMonth: string
-  passoutYear: string
-  tier: string
-  skills: Record<string, number>
-  dreamFuture: string
-  dreamTarget: string
-  priority: string
-  abroad: string
-  funding: string
-  reminderEmail: string
-  reminderFreq: string
-}
+type Profile = OnboardingProfile
 
 interface TypewriterProps {
   onDone: () => void
@@ -47,7 +31,7 @@ function Typewriter({ onDone }: TypewriterProps) {
   }, [])
 
   const line1 = `Hi, ${name}!`
-  const line2 = "Let's figure out what your dream future looks like."
+  const line2 = "Let's plan your route to a placement year."
 
   useEffect(() => {
     let timeout: NodeJS.Timeout
@@ -244,6 +228,16 @@ function Progress({ step, total }: { step: number; total: number }) {
 
 // ─── STEP 1: ACADEMIC PROFILE ────────────────────────────────────
 function StepAcademic({ data, onChange, onNext }: StepProps) {
+  const thisYear = new Date().getFullYear()
+  // Placements usually start the summer after second year. From August onwards the next summer is next year.
+  const nextSummer = new Date().getMonth() >= 7 ? thisYear + 1 : thisYear
+  const placementOptions = [
+    `Summer ${nextSummer}`,
+    `Autumn ${nextSummer}`,
+    `Summer ${nextSummer + 1}`,
+    'Not sure yet'
+  ]
+
   return (
     <div style={S.page}>
       <div style={S.card}>
@@ -251,80 +245,66 @@ function StepAcademic({ data, onChange, onNext }: StepProps) {
         <div style={S.title}>Your academic profile</div>
         <div style={S.sub}>Tell Auron about where you are right now.</div>
 
-        <label style={S.label}>Branch / Degree</label>
+        <label style={S.label}>Degree</label>
         <select
           style={S.select}
-          value={data.branch}
-          onChange={e => onChange('branch', e.target.value)}>
-          <option value="">Select your branch</option>
-          <option>Computer Science Engineering</option>
-          <option>AI & Data Science</option>
-          <option>Electronics & Communication</option>
-          <option>Mechanical Engineering</option>
-          <option>Civil Engineering</option>
-          <option>Electrical Engineering</option>
-          <option>Information Technology</option>
+          value={data.degree}
+          onChange={e => onChange('degree', e.target.value)}>
+          <option value="">Select your degree</option>
+          <option>Accounting and Finance</option>
+          <option>Accounting</option>
+          <option>Finance</option>
+          <option>Banking and Finance</option>
+          <option>Economics and Finance</option>
+          <option>Business or Management (finance focus)</option>
           <option>Other</option>
         </select>
 
-        <label style={S.label}>Current Semester</label>
+        <label style={S.label}>Year of study</label>
         <select
           style={S.select}
-          value={data.semester}
-          onChange={e => onChange('semester', e.target.value)}>
-          <option value="">Select semester</option>
-          {[1,2,3,4,5,6,7,8].map(s => (
-            <option key={s}>Semester {s}</option>
-          ))}
+          value={data.yearOfStudy}
+          onChange={e => onChange('yearOfStudy', e.target.value)}>
+          <option value="">Select year</option>
+          <option>Year 1</option>
+          <option>Year 2</option>
+          <option>Final year</option>
         </select>
 
-        <label style={S.label}>CGPA</label>
+        <label style={S.label}>Current average mark (%)</label>
         <input
           style={S.input}
           type="number"
-          step="0.1"
+          step="1"
           min="0"
-          max="10"
-          placeholder="e.g. 7.8"
-          value={data.cgpa}
-          onChange={e => onChange('cgpa', e.target.value)}
+          max="100"
+          placeholder="e.g. 64"
+          value={data.average}
+          onChange={e => onChange('average', e.target.value)}
         />
 
-        <label style={S.label}>Expected passout</label>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <select
-            style={{ ...S.select, flex: 1 }}
-            value={data.passoutMonth}
-            onChange={e => onChange('passoutMonth', e.target.value)}>
-            <option value="">Month</option>
-            {['January','February','March','April','May','June',
-              'July','August','September','October','November','December'
-            ].map(m => <option key={m}>{m}</option>)}
-          </select>
-          <select
-            style={{ ...S.select, flex: 1 }}
-            value={data.passoutYear}
-            onChange={e => onChange('passoutYear', e.target.value)}>
-            <option value="">Year</option>
-            {[2025,2026,2027,2028,2029].map(y => (
-              <option key={y}>{y}</option>
-            ))}
-          </select>
-        </div>
-
-        <label style={S.label}>College tier</label>
+        <label style={S.label}>When do you want your placement to start?</label>
         <select
           style={S.select}
-          value={data.tier}
-          onChange={e => onChange('tier', e.target.value)}>
-          <option value="">Select tier</option>
-          <option value="1">Tier 1 — IIT / NIT / BITS</option>
-          <option value="2">Tier 2 — Good private/state college</option>
-          <option value="3">Tier 3 — Other colleges</option>
+          value={data.placementStart}
+          onChange={e => onChange('placementStart', e.target.value)}>
+          <option value="">Select start</option>
+          {placementOptions.map(o => <option key={o}>{o}</option>)}
+        </select>
+
+        <label style={S.label}>Expected graduation year</label>
+        <select
+          style={S.select}
+          value={data.graduationYear}
+          onChange={e => onChange('graduationYear', e.target.value)}>
+          <option value="">Year</option>
+          {[thisYear, thisYear + 1, thisYear + 2, thisYear + 3, thisYear + 4].map(y => (
+            <option key={y}>{y}</option>
+          ))}
         </select>
 
         <button style={S.btn} onClick={() => {
-          if (!data.branch || !data.semester || !data.cgpa || !data.passoutYear) {
+          if (!data.degree || !data.yearOfStudy || !data.average || !data.placementStart || !data.graduationYear) {
             alert('Please fill all fields')
             return
           }
@@ -339,12 +319,12 @@ function StepAcademic({ data, onChange, onNext }: StepProps) {
 
 // ─── STEP 2: SKILLS ──────────────────────────────────────────────
 const SKILL_OPTIONS = [
-  'Python', 'Java', 'C/C++', 'JavaScript', 'SQL',
-  'Machine Learning', 'Deep Learning', 'Data Structures & Algorithms',
-  'System Design', 'React', 'Node.js', 'Cloud (AWS/GCP/Azure)',
-  'Computer Networks', 'Operating Systems', 'DBMS',
-  'Communication', 'Leadership', 'Problem Solving',
-  'Research', 'Statistics & Math'
+  'Excel (formulas and pivot tables)', 'Financial modelling', 'Financial accounting',
+  'Management accounting', 'Corporate finance', 'Audit and assurance',
+  'Taxation', 'Numerical reasoning tests', 'Verbal reasoning tests',
+  'Situational judgement tests', 'Commercial awareness', 'SQL or Power BI',
+  'Python or VBA', 'Communication', 'Teamwork and leadership',
+  'Presentation skills', 'Interview technique', 'CV and cover letter writing'
 ]
 
 function StepSkills({ data, onChange, onNext, onBack }: StepProps) {
@@ -373,9 +353,10 @@ function StepSkills({ data, onChange, onNext, onBack }: StepProps) {
     <div style={{ ...S.page, justifyContent: 'flex-start', paddingTop: '60px' }}>
       <div style={{ ...S.card, maxWidth: '600px' }}>
         <Progress step={1} total={5} />
-        <div style={S.title}>What skills do you have?</div>
+        <div style={S.title}>Where are your skills right now?</div>
         <div style={S.sub}>
-          Click to select skills. Then rate how confident you are in each one.
+          Click the skills that apply, then rate how confident you are in each one.
+          Auron uses this to find the gaps to close before assessments.
         </div>
 
         {/* Skill chips */}
@@ -452,16 +433,97 @@ function StepSkills({ data, onChange, onNext, onBack }: StepProps) {
   )
 }
 
-// ─── STEP 3: DREAM FUTURE ────────────────────────────────────────
+// ─── STEP 3: PLACEMENT GOALS ─────────────────────────────────────
+const EXPERIENCE_OPTIONS = [
+  'Spring week or insight day', 'Internship', 'Part-time job',
+  'Society or leadership role', 'Volunteering', 'None yet'
+]
+
+const SECTOR_OPTIONS = [
+  'Audit', 'Tax', 'Advisory and consulting',
+  'Transaction services and corporate finance', 'Banking',
+  'Insurance and pensions', 'In-house corporate finance', 'Not sure yet'
+]
+
 function StepDream({ data, onChange, onNext, onBack }: StepProps) {
+  const toggle = (key: 'experience' | 'targetSectors', value: string): void => {
+    const current = data[key]
+    onChange(key, current.includes(value) ? current.filter(v => v !== value) : [...current, value])
+  }
+
+  const chipStyle = (active: boolean) => ({
+    padding: '8px 16px',
+    borderRadius: '20px',
+    border: active ? '2px solid #3D1F00' : '1px solid #DDD',
+    background: active ? '#F5F0E8' : 'white',
+    cursor: 'pointer',
+    fontSize: '14px',
+    color: active ? '#3D1F00' : '#666',
+    fontWeight: active ? 'bold' : 'normal',
+    transition: 'all 0.2s'
+  } as const)
+
   return (
-    <div style={S.page}>
-      <div style={S.card}>
+    <div style={{ ...S.page, justifyContent: 'flex-start', paddingTop: '60px' }}>
+      <div style={{ ...S.card, maxWidth: '600px' }}>
         <Progress step={2} total={5} />
-        <div style={S.title}>What does your dream future look like?</div>
+        <div style={S.title}>Your placement goals</div>
         <div style={S.sub}>
-          Be honest. Auron won't judge you — it will help you get there.
+          Be honest. Auron will build your plan around where you really are.
         </div>
+
+        <label style={S.label}>Where are you with applications?</label>
+        <select
+          style={S.select}
+          value={data.applicationStatus}
+          onChange={e => onChange('applicationStatus', e.target.value)}>
+          <option value="">Select one</option>
+          <option>Haven't started applying</option>
+          <option>Applied to some, waiting to hear back</option>
+          <option>In assessments or interviews</option>
+          <option>I already have an offer</option>
+        </select>
+
+        <label style={S.label}>Experience so far</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+          {EXPERIENCE_OPTIONS.map(opt => (
+            <div key={opt} onClick={() => toggle('experience', opt)}
+              style={chipStyle(data.experience.includes(opt))}>
+              {data.experience.includes(opt) ? '✓ ' : ''}{opt}
+            </div>
+          ))}
+        </div>
+
+        <label style={S.label}>Areas of finance you are interested in</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+          {SECTOR_OPTIONS.map(opt => (
+            <div key={opt} onClick={() => toggle('targetSectors', opt)}
+              style={chipStyle(data.targetSectors.includes(opt))}>
+              {data.targetSectors.includes(opt) ? '✓ ' : ''}{opt}
+            </div>
+          ))}
+        </div>
+
+        <label style={S.label}>Target employers (optional)</label>
+        <input
+          style={S.input}
+          placeholder="e.g. Deloitte, BDO, a bank or corporate in Manchester..."
+          value={data.targetEmployers}
+          onChange={e => onChange('targetEmployers', e.target.value)}
+        />
+
+        <label style={S.label}>Professional qualification you are considering</label>
+        <select
+          style={S.select}
+          value={data.qualificationPlan}
+          onChange={e => onChange('qualificationPlan', e.target.value)}>
+          <option value="">Select one</option>
+          <option>ACA (ICAEW)</option>
+          <option>ACCA</option>
+          <option>CIMA</option>
+          <option>CFA</option>
+          <option>Not sure yet</option>
+        </select>
 
         <label style={S.label}>In 5 years, I want to be...</label>
         <textarea
@@ -471,82 +533,14 @@ function StepDream({ data, onChange, onNext, onBack }: StepProps) {
             resize: 'vertical' as const,
             lineHeight: '1.6'
           }}
-          placeholder="e.g. Building AI products at a top tech company, or doing research at a great university, or starting my own company..."
+          placeholder="e.g. A newly qualified chartered accountant in audit, or working in corporate finance at a bank..."
           value={data.dreamFuture}
           onChange={e => onChange('dreamFuture', e.target.value)}
         />
 
-        <label style={S.label}>Dream company or university (optional)</label>
-        <input
-          style={S.input}
-          placeholder="e.g. Google, DeepMind, IIT Bombay MTech, Stanford MS..."
-          value={data.dreamTarget}
-          onChange={e => onChange('dreamTarget', e.target.value)}
-        />
-
-        <label style={S.label}>What matters more to you right now?</label>
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-          {['Earning soon', 'Deep expertise first', 'Not sure yet'].map(opt => (
-            <div
-              key={opt}
-              onClick={() => onChange('priority', opt)}
-              style={{
-                flex: 1,
-                padding: '14px 10px',
-                borderRadius: '10px',
-                border: data.priority === opt ? '2px solid #3D1F00' : '1px solid #DDD',
-                background: data.priority === opt ? '#F5F0E8' : 'white',
-                cursor: 'pointer',
-                textAlign: 'center' as const,
-                fontSize: '13px',
-                color: data.priority === opt ? '#3D1F00' : '#666',
-                fontWeight: data.priority === opt ? 'bold' : 'normal',
-                transition: 'all 0.2s'
-              }}>
-              {opt}
-            </div>
-          ))}
-        </div>
-
-        <label style={S.label}>Open to studying or working abroad?</label>
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-          {['Yes, definitely', 'Maybe', 'No, India only'].map(opt => (
-            <div
-              key={opt}
-              onClick={() => onChange('abroad', opt)}
-              style={{
-                flex: 1,
-                padding: '14px 10px',
-                borderRadius: '10px',
-                border: data.abroad === opt ? '2px solid #3D1F00' : '1px solid #DDD',
-                background: data.abroad === opt ? '#F5F0E8' : 'white',
-                cursor: 'pointer',
-                textAlign: 'center' as const,
-                fontSize: '13px',
-                color: data.abroad === opt ? '#3D1F00' : '#666',
-                fontWeight: data.abroad === opt ? 'bold' : 'normal',
-                transition: 'all 0.2s'
-              }}>
-              {opt}
-            </div>
-          ))}
-        </div>
-
-        <label style={S.label}>Funding preference</label>
-        <select
-          style={S.select}
-          value={data.funding}
-          onChange={e => onChange('funding', e.target.value)}>
-          <option value="">Select preference</option>
-          <option>Fully funded only</option>
-          <option>Open to scholarships</option>
-          <option>Can self-fund partially</option>
-          <option>No preference</option>
-        </select>
-
         <button style={S.btn} onClick={() => {
-          if (!data.dreamFuture || !data.priority) {
-            alert('Please fill your dream future and priority')
+          if (!data.applicationStatus || data.targetSectors.length === 0 || !data.dreamFuture) {
+            alert('Please choose your application status, at least one area of finance, and describe where you want to be')
             return
           }
           onNext()
@@ -585,7 +579,7 @@ function StepReminders({ data, onChange, onNext, onBack }: StepProps) {
           {[
             { val: 'weekly', label: 'Weekly digest', desc: 'One email every Sunday with your upcoming week' },
             { val: 'milestone', label: 'Milestone alerts only', desc: 'Only when a deadline is 7 days or 1 day away' },
-            { val: 'daily', label: 'Daily check-in', desc: 'Short daily nudge (recommended for final year students)' }
+            { val: 'daily', label: 'Daily check-in', desc: 'Short daily nudge (best when application deadlines are close)' }
           ].map(opt => (
             <div
               key={opt.val}
@@ -631,7 +625,7 @@ function StepGenerating() {
   const messages = [
     'Analysing your profile...',
     'Mapping your skill gaps...',
-    'Checking what top companies look for...',
+    'Working back from your placement start date...',
     'Building your personalised roadmap...',
     'Almost there...'
   ]
@@ -657,9 +651,9 @@ function StepGenerating() {
   const features = [
     { icon: '🗺️', title: 'Personalized Roadmap', desc: 'Tailored to your skills & goals' },
     { icon: '📊', title: 'Skill Gap Analysis', desc: 'Know exactly what to improve' },
-    { icon: '💼', title: 'Industry Insights', desc: 'What companies actually want' },
-    { icon: '🎓', title: 'Smart Recommendations', desc: 'Courses, projects & resources' },
-    { icon: '🚀', title: 'Career Milestones', desc: 'Clear path to your dream' },
+    { icon: '💼', title: 'Employer Insights', desc: 'What finance employers look for' },
+    { icon: '🎓', title: 'Smart Recommendations', desc: 'Practice tests, courses & resources' },
+    { icon: '🚀', title: 'Application Milestones', desc: 'Clear steps to your placement' },
     { icon: '💡', title: 'AI-Powered Advice', desc: 'Real guidance, real results' }
   ]
 
@@ -751,18 +745,18 @@ export default function Onboarding() {
   const [profile, setProfile] = useState<Profile>({
     name: tempData.name || '',
     college: tempData.college || '',
-    cgpa: tempData.cgpa || '',
-    branch: '',
-    semester: '',
-    passoutMonth: '',
-    passoutYear: '',
-    tier: '',
+    average: tempData.average || '',
+    degree: '',
+    yearOfStudy: '',
+    placementStart: '',
+    graduationYear: '',
+    applicationStatus: '',
+    experience: [],
+    targetSectors: [],
+    targetEmployers: '',
+    qualificationPlan: '',
     skills: {},
     dreamFuture: '',
-    dreamTarget: '',
-    priority: '',
-    abroad: '',
-    funding: '',
     reminderEmail: '',
     reminderFreq: ''
   })
@@ -788,9 +782,10 @@ export default function Onboarding() {
           email: userEmail,
           name: profile.name,
           college: profile.college,
-          branch: profile.branch,
-          cgpa: parseFloat(profile.cgpa),
-          passout_date: `${profile.passoutYear}-05-01`,
+          // Existing columns are reused: branch holds the degree, cgpa holds the average mark (%)
+          branch: profile.degree,
+          cgpa: parseFloat(profile.average),
+          passout_date: `${profile.graduationYear}-06-01`,
           chosen_path: 'pending'
         })
         .select()
@@ -816,23 +811,7 @@ export default function Onboarding() {
       const response = await fetch('/api/generate-roadmap', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          profile: {
-            name: profile.name,
-            branch: profile.branch,
-            semester: profile.semester,
-            cgpa: profile.cgpa,
-            passoutYear: profile.passoutYear,
-            tier: profile.tier,
-            skills: profile.skills,
-            dreamFuture: profile.dreamFuture,
-            dreamTarget: profile.dreamTarget,
-            priority: profile.priority,
-            abroad: profile.abroad,
-            funding: profile.funding
-          }
-        })
+        body: JSON.stringify({ userId, profile })
       })
 
       if (!response.ok) {
