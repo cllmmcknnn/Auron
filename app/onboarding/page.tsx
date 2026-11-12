@@ -796,6 +796,20 @@ export default function Onboarding() {
         throw userError
       }
 
+      // 2b. Save the reminder frequency chosen in onboarding (the email goes on the users row above)
+      const { error: prefsError } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: userId,
+          reminder_frequency: profile.reminderFreq,
+          updated_at: new Date().toISOString()
+        })
+
+      if (prefsError) {
+        // Not fatal: the reminder emails fall back to a weekly digest and Settings can change it
+        console.error('Preferences save error:', prefsError)
+      }
+
       // 3. Save skills to user_skills table
       const skillInserts = Object.entries(profile.skills).map(([skillName, confidence]: [string, number]) => ({
         user_id: userId,
