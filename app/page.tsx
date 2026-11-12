@@ -6,7 +6,7 @@ import ProblemSection from '@/components/ui/ProblemSection'
 interface FormData {
   name: string
   college: string
-  cgpa: string
+  average: string
 }
 
 export default function Home() {
@@ -14,7 +14,7 @@ export default function Home() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     college: '',
-    cgpa: ''
+    average: ''
   })
 
   const handleScroll = (): void => {
@@ -165,8 +165,8 @@ export default function Home() {
             <form onSubmit={handleContinue}>
               {[
                 { label: 'Your name', name: 'name' as const, type: 'text', placeholder: 'e.g. Sithaara' },
-                { label: 'College / University', name: 'college' as const, type: 'text', placeholder: 'e.g. RSET, Kochi' },
-                { label: 'Current CGPA', name: 'cgpa' as const, type: 'number', placeholder: 'e.g. 7.8' }
+                { label: 'College / University', name: 'college' as const, type: 'text', placeholder: 'e.g. Manchester Metropolitan University' },
+                { label: 'Current average mark (%)', name: 'average' as const, type: 'number', placeholder: 'e.g. 64' }
               ].map(field => (
                 <div key={field.name} style={{ marginBottom: '20px' }}>
                   <label style={{
